@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+
+
+    <title>Payload Analyzer</title>
+    <style>
+        /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+        
+        #map {
+            height: 100%;
+        }
+        /* Optional: Makes the sample page fill the window. */
+        
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        tr {
+            padding: 5;
+            
+        }
+        td{
+            padding-left: 5;
+        }
+        Photogrid{
+            padding: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    
+
+<table>
+<tr>    
+   <td> <div id="Photogrid"></div></td><td><div id='Stores'></div></td>
+    
+   <td> <div id="address"></div></td><td><div id='Stores'></div></td>
+    </tr>
+    </table>
+   
+    <div id="map" display="none"></div>
+
+
+
+</body>
+
+        <script>
+      
+            
+            var listOfLocaiton = [];
+            var food;
+            function myFunction(id) {
+                
+                
+                
+                       var xhttp = new XMLHttpRequest();
+        var imageUrl = id;
+        console.log(imageUrl);
+        url = "https://watson-api-explorer.mybluemix.net/visual-recognition/api/v3/classify?api_key=15f234085c0aff3a97d4a7906aebaa44535653a4&url=$$url&classifier_ids=food&version=2016-05-20";
+        url = url.replace("$$url",imageUrl);
+        console.log(url);
+        xhttp.open("GET", url);
+        xhttp.send();
+
+        xhttp.onreadystatechange = function () {
+            if (xhttp.readyState == 4) {
+                eData = xhttp.responseText;
+                if (xhttp.status == 200 && eData.length > 0) {
+                    eventConsumerActionRuleData = JSON.parse(eData);
+                }
+
+                classes = eventConsumerActionRuleData.images[0].classifiers[0].classes;
+                console.log(classes);
+                maxScore = classes[0].score;
+                item = classes[0].class;
+               for(i = 0;i<classes.length;i++){
+                   if(classes[i].score > maxScore){
+                       item = classes[i].class;
+                   }
+               }
+                console.log(item);
+                food=item;
+                
+                myGoogleFunction1();
+                
+            }
+        };
+                
+                
+  
+}
+            
+          
+            
+            
+      function myGoogleFunction1() {
+                       const PROXY_URL = 'https://cors-anywhere.herokuapp.com/'
+            
+             var location=globalLat+","+globalLong
+            $.ajax({
+  type: 'GET',
+  url:PROXY_URL+"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="+location+"&radius=500&types=food&name="+food+"&key=AIzaSyCjPw7yq0_fv93Z1KKtJHfpEhDgN75OOi8",
+  dataType: 'json',
+                
+success: function(hotel){
+    console.log(hotel);
+    console.log(hotel.results);
+    location = hotel.results;
+      innerHtml1="<table>";
+    var innerMiddle="";
+    for(i = 0 ;i< location.length;i++){
+        
+        
+      innerMiddle=innerMiddle+"<tr><td>Address</td><td>"+location[i].vicinity+"<td><tr><tr><td></td><td><img src='"+location[i].icon+"'/><td><tr><tr><td>Name</td><td>"+location[i].name+"</br><td><tr>"
+        
+       document.getElementById("Photogrid").style.visibility="hidden"
+       /* LocationId tmepLocation;
+        tempLocation.name = location[i].name;
+        tempLocation.id = location[i].id;
+        tempLocation.address = location[i].vicinity;
+        
+        listOfLocaiton.add(tempLocation);*/
+    }
+    var innerhtmlLast="</table>"
+    
+   var final=innerHtml1+innerMiddle+innerhtmlLast
+    
+    
+     $("#address").html(final); 
+    console.log(listOfLocaiton.length);
+ }
+});}
+            
+            
+</script>
+    
+    
+<script>
+    // Note: This example requires that you consent to location sharing when
+    // prompted by your browser. If you see the error "The Geolocation service
+    // failed.", it means you probably did not give permission for the browser to
+    // locate you.
+    var map, infoWindow;
+    var globalLong;
+     var globalLat;
+    
+
+    function initMap() {
+        document.getElementById("map").style.visibility = "hidden"; 
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: {
+                lat: -64.397,
+                lng: 150.644
+            },
+            zoom: 6
+        });
+        infoWindow = new google.maps.InfoWindow;
+
+        // Try HTML5 geolocation.
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                var pos = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+               
+                    
+                  
+                };
+                 console.info(position.coords.latitude);
+                  console.info(position.coords.longitude);
+                globalLong=position.coords.longitude;
+                globalLat=position.coords.latitude;
+
+                infoWindow.setPosition(pos);
+                infoWindow.setContent('Location found.');
+                infoWindow.open(map);
+                map.setCenter(pos);
+            }, function() {
+                handleLocationError(true, infoWindow, map.getCenter());
+            });
+        } else {
+            // Browser doesn't support Geolocation
+            handleLocationError(false, infoWindow, map.getCenter());
+        }
+    }
+
+    function handleLocationError(browserHasGeolocation, infoWindow, pos) {
+        infoWindow.setPosition(pos);
+        infoWindow.setContent(browserHasGeolocation ?
+            'Error: The Geolocation service failed.' :
+            'Error: Your browser doesn\'t support geolocation.');
+        infoWindow.open(map);
+    }
+
+</script>
+
+
+<script src="https://code.jquery.com/jquery-1.11.2.min.js" charset="utf-8"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+<script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+<script type="text/javascript" src="./bluehack.js"></script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCjPw7yq0_fv93Z1KKtJHfpEhDgN75OOi8&callback=initMap">
+
+
+</script>
+
+</html>
